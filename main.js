@@ -20,7 +20,8 @@ const player = {
     y: tileSize + tileSize / 2,
     radius: 10,
     speed: 1,
-    angle: 0,
+    // Yangle: 0,
+    Zangle: 0,
     arrowRight: false,
     arrowLeft: false,
     moveUp: false,
@@ -87,7 +88,7 @@ function castRays() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, cvs.width, cvs.height);
 
-    const startAngle = player.angle - ray.fov / 2;
+    const startAngle = player.Zangle - ray.fov / 2;
 
     for (let i = 0; i < ray.amount; i++) {
         let curAngle = startAngle + i * ray.deltaAngle;
@@ -102,15 +103,18 @@ function castRays() {
             depth++;
 
             if (isWall(rayX, rayY)) {
-                const projHeight = ray.coeff / depth;
+                depth *= Math.cos(player.Zangle - curAngle)
+                const projHeight = (ray.coeff / depth)
                 ctx.fillStyle = `rgba(255, 255, 255, ${0.005 * projHeight / 1.5})`;
-                ctx.fillRect(i * ray.scale, cvs.height / 2 - projHeight / 2, ray.scale, projHeight * 2);
+                // ctx.fillRect((i * ray.scale), (cvs.height / 2 - projHeight / 2) * Math.cos(-player.Yangle * 2), ray.scale , projHeight * 2);
+                ctx.fillRect((i * ray.scale), (cvs.height / 2 - projHeight / 2), ray.scale , projHeight * 2);
                 hit = true;
             }
         }
     }
     ctx.restore();
 }
+
 function draw() {
     [cvs.width, cvs.height] = [window.innerWidth, window.innerHeight];
     ray.amount = cvs.width / 2;
@@ -122,19 +126,20 @@ function draw() {
     
     let nextX = player.x;
     let nextY = player.y;
-    if (player.moveUp) { nextX += Math.cos(player.angle) * player.speed; nextY += Math.sin(player.angle) * player.speed }; 
-    if (player.moveDown) { nextX += -Math.cos(player.angle) * player.speed; nextY += -Math.sin(player.angle) * player.speed }; 
-    if (player.moveLeft) { nextX += Math.sin(player.angle) * player.speed; nextY += -Math.cos(player.angle) * player.speed }; 
-    if (player.moveRight) { nextX += -Math.sin(player.angle) * player.speed; nextY += Math.cos(player.angle) * player.speed }; 
+    if (player.moveUp) { nextX += Math.cos(player.Zangle) * player.speed; nextY += Math.sin(player.Zangle) * player.speed }; 
+    if (player.moveDown) { nextX += -Math.cos(player.Zangle) * player.speed; nextY += -Math.sin(player.Zangle) * player.speed }; 
+    if (player.moveLeft) { nextX += Math.sin(player.Zangle) * player.speed; nextY += -Math.cos(player.Zangle) * player.speed }; 
+    if (player.moveRight) { nextX += -Math.sin(player.Zangle) * player.speed; nextY += Math.cos(player.Zangle) * player.speed }; 
 
     if (!isWall(nextX, player.y)) player.x = nextX;
     if (!isWall(player.x, nextY)) player.y = nextY;
 
-    if (player.arrowRight) player.angle += 0.02;
-    if (player.arrowLeft) player.angle -= 0.02;
+    if (player.arrowRight) player.Zangle += 0.02;
+    if (player.arrowLeft) player.Zangle -= 0.02;
 
-    if(cursor.x != cursor.newX) player.angle = cursor.x / 500
-
+    if(cursor.x != cursor.newX) player.Zangle = cursor.x / 500;
+    // if(cursor.y > cursor.newY) player.Yangle = cursor.y / 500;
+    // console.log(player.Yangle)
     castRays();
 
     requestAnimationFrame(draw);
